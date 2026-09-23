@@ -64,6 +64,8 @@ test("設定驗證拒絕空白或格式錯誤的管理 ID", () => {
   assert.equal(configurationIssue({ ...base, ADMIN_USER_ID: " " }), "ADMIN_USER_ID");
   assert.equal(configurationIssue({ ...base, ADMIN_USER_ID: "1", ADMIN_GROUP_ID: "group" }), "ADMIN_GROUP_ID");
   assert.equal(configurationIssue({ ...base, ADMIN_USER_ID: "1", ADMIN_GROUP_ID: "" }), null);
+  assert.equal(configurationIssue({ ...base, ADMIN_USER_ID: "1", BOT_LANGUAGE: "fr" }), "BOT_LANGUAGE");
+  assert.equal(configurationIssue({ ...base, ADMIN_USER_ID: "1", BOT_LANGUAGE: "ja" }), null);
 });
 
 test("非指定群組的更新直接忽略", async () => {
@@ -120,6 +122,29 @@ test("未設定管理群組時，管理者仍可使用 /start", async () => {
       ADMIN_USER_ID: "1"
     });
     assert.match(sentPayload.text, /管理者私聊備用模式/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("管理者回覆依部署語言，不依 Telegram 使用者語言", async () => {
+  const originalFetch = globalThis.fetch;
+  const sent = [];
+  globalThis.fetch = async (_url, init) => {
+    sent.push(JSON.parse(init.body).text);
+    return new Response(JSON.stringify({ ok: true, result: { message_id: 1 } }));
+  };
+  try {
+    for (const language of ["ja", "en"]) {
+      await processUpdate({ message: {
+        message_id: 2,
+        chat: { id: 1, type: "private" },
+        from: { id: 1, is_bot: false, language_code: "zh" },
+        text: "/start"
+      } }, { BOT_TOKEN: "test-token", ADMIN_USER_ID: "1", BOT_LANGUAGE: language });
+    }
+    assert.match(sent[0], /管理者との直接チャットモード/);
+    assert.match(sent[1], /direct-admin mode/);
   } finally {
     globalThis.fetch = originalFetch;
   }

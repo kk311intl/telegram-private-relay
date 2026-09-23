@@ -2,7 +2,7 @@
 
 [中文](#zh) · [日本語](#ja) · [English](#en) · [AI 提示詞 / AI プロンプト / AI prompts](#ai)
 
-Version: v1.0.1 · License: [GPL-3.0-only](LICENSE)
+Version: v1.1.0 · License: [GPL-3.0-only](LICENSE)
 
 <a id="ai"></a>
 
@@ -12,15 +12,15 @@ Version: v1.0.1 · License: [GPL-3.0-only](LICENSE)
 
 ### 中文
 
-> 請先閱讀這個 repository，再協助我安裝、設定、部署、排錯或修改。這是使用 Cloudflare Worker、D1 migrations 和 Telegram Webhook 的私聊轉送 Bot：每位使用者對應管理群組中的一個 Topic，也可改用管理者私聊模式。部署需要 Worker 名稱、D1 database ID、BOT_TOKEN、WEBHOOK_SECRET、ADMIN_USER_ID；ADMIN_GROUP_ID 可選。修改前先指出真正涉及的檔案，維持現有架構並只做必要改動。不要把真實 Token、ID、網域或本機路徑提交到 Git，請使用範例設定與本機憑證。只詢問缺少的必要值，完成後執行相關檢查並簡述結果。
+> 請先閱讀這個 repository，再協助我安裝、設定、部署、排錯或修改。這是使用 Cloudflare Worker、D1 migrations 和 Telegram Webhook 的私聊轉送 Bot：每位使用者對應管理群組中的一個 Topic，也可改用管理者私聊模式。每個部署由 BOT_LANGUAGE 固定選擇中文、日文或英文，不按使用者語言切換。部署需要 Worker 名稱、D1 database ID、BOT_TOKEN、WEBHOOK_SECRET、ADMIN_USER_ID；ADMIN_GROUP_ID 可選。修改前先指出真正涉及的檔案，維持現有架構並只做必要改動。不要把真實 Token、ID、網域或本機路徑提交到 Git，請使用範例設定與本機憑證。只詢問缺少的必要值，完成後執行相關檢查並簡述結果。
 
 ### 日本語
 
-> まずこの repository を読み、インストール、設定、デプロイ、問題調査、または依頼した変更を手伝ってください。これは Cloudflare Worker、D1 migrations、Telegram Webhook を使う私信転送 Bot です。ユーザーごとに管理グループのトピックを作り、管理者への私信モードも使えます。デプロイには Worker 名、D1 database ID、BOT_TOKEN、WEBHOOK_SECRET、ADMIN_USER_ID が必要で、ADMIN_GROUP_ID は省略できます。変更前に対象ファイルを特定し、既存の構成を保って必要最小限だけ変更してください。実際の Token、ID、ドメイン、ローカルパスを Git に入れず、サンプル設定とローカルの認証情報を使ってください。不足している必須項目だけ確認し、関連するチェックを実行して結果を簡潔に報告してください。
+> まずこの repository を読み、インストール、設定、デプロイ、問題調査、または依頼した変更を手伝ってください。これは Cloudflare Worker、D1 migrations、Telegram Webhook を使う私信転送 Bot です。ユーザーごとに管理グループのトピックを作り、管理者への私信モードも使えます。各デプロイは BOT_LANGUAGE で中国語、日本語、英語のいずれかに固定され、ユーザーごとには切り替わりません。デプロイには Worker 名、D1 database ID、BOT_TOKEN、WEBHOOK_SECRET、ADMIN_USER_ID が必要で、ADMIN_GROUP_ID は省略できます。変更前に対象ファイルを特定し、既存の構成を保って必要最小限だけ変更してください。実際の Token、ID、ドメイン、ローカルパスを Git に入れず、サンプル設定とローカルの認証情報を使ってください。不足している必須項目だけ確認し、関連するチェックを実行して結果を簡潔に報告してください。
 
 ### English
 
-> Read this repository before acting. It is a Telegram private-message relay built with a Cloudflare Worker, D1 migrations, and a Telegram webhook. Each user has a topic in an admin group, with an admin private-chat fallback. Help me install, configure, deploy, troubleshoot, or make a requested change. Deployment needs a Worker name, a D1 database ID, BOT_TOKEN, WEBHOOK_SECRET, ADMIN_USER_ID, and optionally ADMIN_GROUP_ID. Identify the files involved first and keep the current architecture. Keep real credentials, IDs, domains, and local paths out of Git; use the example config and local secrets. Ask only for missing required values, run the relevant checks, and summarize the result.
+> Read this repository before acting. It is a Telegram private-message relay built with a Cloudflare Worker, D1 migrations, and a Telegram webhook. Each user has a topic in an admin group, with an admin private-chat fallback. Each deployment uses one fixed Chinese, Japanese, or English language selected by BOT_LANGUAGE, not a per-user setting. Help me install, configure, deploy, troubleshoot, or make a requested change. Deployment needs a Worker name, a D1 database ID, BOT_TOKEN, WEBHOOK_SECRET, ADMIN_USER_ID, and optionally ADMIN_GROUP_ID. Identify the files involved first and keep the current architecture. Keep real credentials, IDs, domains, and local paths out of Git; use the example config and local secrets. Ask only for missing required values, run the relevant checks, and summarize the result.
 
 <a id="zh"></a>
 
@@ -44,7 +44,7 @@ pnpm run check
 Copy-Item wrangler.jsonc.example wrangler.jsonc
 ```
 
-先在 `wrangler.jsonc` 設定自己的 Worker 名稱和 D1 名稱。建立新資料庫後，把傳回的 `database_id` 填入該檔；不要把真正的 ID 提交到 Git。既有資料庫請直接填入原 ID，勿重新建立。
+先在 `wrangler.jsonc` 設定自己的 Worker 名稱、D1 名稱及 `vars.BOT_LANGUAGE`（`zh`、`ja` 或 `en`，預設 `zh`）。每個部署實例固定一種語言，不依使用者的 Telegram 語言切換；不同語言的實例應使用各自的 Worker、D1、Telegram Bot Token、Webhook，以及 Topic 模式的管理群組。建立新資料庫後，把傳回的 `database_id` 填入該檔；不要把真正的 ID 提交到 Git。既有資料庫請直接填入原 ID，勿重新建立。
 
 ```powershell
 ./tools/Save-CloudflareToken.ps1
@@ -64,7 +64,7 @@ Cloudflare API Token 需要 Workers Scripts Edit 和 D1 Edit 權限。加密副�
 | `WEBHOOK_SECRET` | Secret | 使用下方腳本產生，與註冊 Webhook 使用同一值 |
 | `ADMIN_USER_ID` | Text | 管理者的數字 Telegram User ID |
 | `ADMIN_GROUP_ID` | Text，可選 | 啟用話題的超級群組 ID；省略則使用管理者私聊模式 |
-| `WELCOME_MESSAGE` | Text，可選 | `/start` 的歡迎訊息 |
+| `WELCOME_MESSAGE` | Text，可選 | 覆蓋該部署語言的 `/start` 歡迎訊息 |
 | `MESSAGE_INTERVAL_SECONDS` | Text，可選 | 一般訊息間隔，預設 2 秒，範圍 0–60 |
 
 ```powershell
@@ -118,7 +118,7 @@ pnpm run check
 Copy-Item wrangler.jsonc.example wrangler.jsonc
 ```
 
-`wrangler.jsonc` に自分の Worker 名と D1 名を設定します。新しいデータベースを作成したら、返された `database_id` を同ファイルに記入します。実際の ID は Git にコミットしないでください。既存の D1 を使う場合はその ID を記入し、再作成しません。
+`wrangler.jsonc` に自分の Worker 名、D1 名、`vars.BOT_LANGUAGE`（`zh`、`ja`、`en` のいずれか。既定は `zh`）を設定します。各デプロイは一つの言語を使用し、Telegram ユーザーの言語によって切り替えません。言語別のデプロイには、それぞれ別の Worker、D1、Telegram Bot Token、Webhook、トピックモードの管理グループを用意してください。新しいデータベースを作成したら、返された `database_id` を同ファイルに記入します。実際の ID は Git にコミットしないでください。既存の D1 を使う場合はその ID を記入し、再作成しません。
 
 ```powershell
 ./tools/Save-CloudflareToken.ps1
@@ -138,7 +138,7 @@ Cloudflare Worker の Variables and Secrets に次を設定します。
 | `WEBHOOK_SECRET` | Secret | 下記スクリプトで生成し、Webhook 登録にも同じ値を使用 |
 | `ADMIN_USER_ID` | Text | 管理者の数字の Telegram User ID |
 | `ADMIN_GROUP_ID` | Text、省略可 | トピックを有効にしたスーパーグループの ID。省略時は管理者への私信を使用 |
-| `WELCOME_MESSAGE` | Text、省略可 | `/start` の応答文 |
+| `WELCOME_MESSAGE` | Text、省略可 | デプロイ言語の `/start` 応答文を上書き |
 | `MESSAGE_INTERVAL_SECONDS` | Text、省略可 | 通常メッセージの間隔。既定は 2 秒、範囲は 0–60 |
 
 ```powershell
@@ -192,7 +192,7 @@ pnpm run check
 Copy-Item wrangler.jsonc.example wrangler.jsonc
 ```
 
-Set your Worker and D1 names in `wrangler.jsonc`. For a new database, put the returned `database_id` in that file; never commit the real ID. For an existing database, enter its ID and skip creation.
+Set your Worker and D1 names and `vars.BOT_LANGUAGE` (`zh`, `ja`, or `en`; default `zh`) in `wrangler.jsonc`. Each deployment uses one fixed language, regardless of Telegram users' language settings. Use a separate Worker, D1, Telegram Bot Token, webhook, and topic-mode admin group for each language-specific deployment. For a new database, put the returned `database_id` in that file; never commit the real ID. For an existing database, enter its ID and skip creation.
 
 ```powershell
 ./tools/Save-CloudflareToken.ps1
@@ -212,7 +212,7 @@ Set these under the Worker's Variables and Secrets in Cloudflare:
 | `WEBHOOK_SECRET` | Secret | Generated below; use the same value when registering the webhook |
 | `ADMIN_USER_ID` | Text | The admin's numeric Telegram User ID |
 | `ADMIN_GROUP_ID` | Text, optional | Supergroup ID with topics enabled; omit for admin private-chat mode |
-| `WELCOME_MESSAGE` | Text, optional | Reply to `/start` |
+| `WELCOME_MESSAGE` | Text, optional | Overrides the `/start` reply for this deployment language |
 | `MESSAGE_INTERVAL_SECONDS` | Text, optional | Minimum interval for ordinary messages; default 2 seconds, range 0–60 |
 
 ```powershell

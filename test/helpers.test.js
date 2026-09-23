@@ -8,13 +8,14 @@ import {
   parseCommand,
   truncate
 } from "../src/index.js";
+import { t } from "../src/i18n.js";
 
 test("parseCommand 支援 bot 後綴並忽略參數", () => {
   assert.equal(parseCommand("/BLOCK@MyBot now"), "block");
   assert.equal(parseCommand("一般訊息"), null);
 });
 
-test("buildTopicName 使用繁體中文名稱並限制長度", () => {
+test("buildTopicName 限制名稱長度", () => {
   const name = buildTopicName({ id: 123, first_name: "測".repeat(140) });
   assert.equal(Array.from(name).length, 128);
   assert.ok(name.endsWith("…"));
@@ -30,6 +31,27 @@ test("buildUserCard 會跳脫 Telegram HTML", () => {
   assert.match(card, /&lt;測試&gt;/);
   assert.match(card, /@a&amp;b/);
   assert.doesNotMatch(card, /<測試>/);
+});
+
+test("部署語言控制資料卡和預設名稱", () => {
+  assert.match(buildUserCard({ id: 123 }, "ja"), /新しいプライベートチャット/);
+  assert.match(buildUserCard({ id: 123 }, "en"), /New private chat/);
+  assert.equal(buildTopicName({ id: 123 }, "en"), "User · 123");
+});
+
+test("三種部署語言都有完整的訊息文字", () => {
+  const keys = Object.keys({
+    adminReadyTopic: 1, adminReadyDirect: 1, blockedNotice: 1, welcome: 1,
+    userId: 1, rateLimit: 1, blocked: 1, unblocked: 1, unknownCommand: 1,
+    adminHelp: 1, unsupportedMessage: 1, deliveryFailed: 1, albumFailed: 1,
+    groupId: 1, newChat: 1, receivedChat: 1, userDetails: 1, name: 1,
+    username: 1, status: 1, blockedStatus: 1, normalStatus: 1,
+    notSet: 1, notProvided: 1, user: 1
+  });
+  for (const language of ["zh", "ja", "en"]) {
+    for (const key of keys) assert.ok(t(language, key), `${language}.${key}`);
+  }
+  assert.equal(t(undefined, "welcome"), t("zh", "welcome"));
 });
 
 test("escapeHtml 跳脫特殊字元", () => {

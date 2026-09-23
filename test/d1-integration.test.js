@@ -79,6 +79,29 @@ function telegramResponse(result, status = 200) {
   });
 }
 
+test("使用者歡迎訊息依部署語言，不依 Telegram 使用者語言", async () => {
+  const originalFetch = globalThis.fetch;
+  const db = new TestD1();
+  const sent = [];
+  globalThis.fetch = async (_url, init) => {
+    sent.push(JSON.parse(init.body).text);
+    return telegramResponse({ message_id: sent.length });
+  };
+  try {
+    for (const language of ["ja", "en"]) {
+      await processUpdate({ message: userMessage(sent.length + 1, {
+        text: "/start",
+        from: { id: 2, is_bot: false, language_code: "zh" }
+      }) }, { BOT_TOKEN: "test-token", ADMIN_USER_ID: "1", BOT_LANGUAGE: language, BOT_DB: db });
+    }
+    assert.match(sent[0], /こんにちは/);
+    assert.match(sent[1], /Hello/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    db.close();
+  }
+});
+
 test("相簿聚合後只呼叫一次 copyMessages 並保存每則映射", async () => {
   const originalFetch = globalThis.fetch;
   const db = new TestD1();

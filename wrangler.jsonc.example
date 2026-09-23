@@ -5,6 +5,9 @@
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
   "keep_vars": true,
+  "vars": {
+    "BOT_LANGUAGE": "zh"
+  },
   "d1_databases": [
     {
       "binding": "BOT_DB",

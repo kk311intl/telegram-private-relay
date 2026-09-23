@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 const TELEGRAM_API = "https://api.telegram.org";
 const MAX_BODY_BYTES = 1_048_576;
 const MAX_TOPIC_LENGTH = 128;
@@ -121,7 +123,7 @@ async function processMessage(message, env) {
     await telegram(env, "sendMessage", {
       chat_id: message.chat.id,
       message_thread_id: message.message_thread_id,
-      text: `此群組的 ADMIN_GROUP_ID：<code>${escapeHtml(String(message.chat.id))}</code>`,
+      text: `${t(env.BOT_LANGUAGE, "groupId")}：<code>${escapeHtml(String(message.chat.id))}</code>`,
       parse_mode: "HTML"
     });
     return;
@@ -137,9 +139,7 @@ async function processAdminPrivateMessage(message, env) {
   if (command === "start" || command === "help") {
     await telegram(env, "sendMessage", {
       chat_id: message.chat.id,
-      text: env.ADMIN_GROUP_ID
-        ? "Bot 已連線。請在管理群組的使用者 Topic 內直接回覆；可用指令：/user、/block、/unblock、/close。"
-        : "Bot 已連線，現在使用管理者私聊備用模式。請回覆收到的使用者訊息，Bot 會轉送給對應使用者。"
+      text: t(env.BOT_LANGUAGE, env.ADMIN_GROUP_ID ? "adminReadyTopic" : "adminReadyDirect")
     });
     return;
   }
@@ -159,7 +159,7 @@ async function processUserMessage(message, env) {
       try {
         await telegram(env, "sendMessage", {
           chat_id: message.chat.id,
-          text: "目前無法受理您的訊息。"
+          text: t(env.BOT_LANGUAGE, "blockedNotice")
         });
       } catch (error) {
         await releaseBlockedNotice(env.BOT_DB, userId, now).catch(() => {});
@@ -181,14 +181,14 @@ async function processUserMessage(message, env) {
   if (command === "start") {
     await telegram(env, "sendMessage", {
       chat_id: message.chat.id,
-      text: env.WELCOME_MESSAGE || "您好，請直接傳送訊息。我們會在此回覆您。"
+      text: env.WELCOME_MESSAGE || t(env.BOT_LANGUAGE, "welcome")
     });
     return;
   }
   if (command === "id") {
     await telegram(env, "sendMessage", {
       chat_id: message.chat.id,
-      text: `您的 Telegram User ID：${userId}`
+      text: `${t(env.BOT_LANGUAGE, "userId")}：${userId}`
     });
     return;
   }
@@ -212,7 +212,7 @@ async function processUserMessage(message, env) {
   if (!(await claimRateSlot(env.BOT_DB, userId, now, interval, rateKey))) {
     await telegram(env, "sendMessage", {
       chat_id: message.chat.id,
-      text: "訊息傳送過快，請稍後再試。"
+      text: t(env.BOT_LANGUAGE, "rateLimit")
     });
     return;
   }
@@ -333,7 +333,7 @@ export async function processDirectAdminReply(message, env) {
     ).bind(blocked, Math.floor(Date.now() / 1000), user.user_id).run();
     await telegram(env, "sendMessage", {
       chat_id: env.ADMIN_USER_ID,
-      text: blocked ? "已封鎖此使用者。" : "已解除封鎖。"
+      text: t(env.BOT_LANGUAGE, blocked ? "blocked" : "unblocked")
     });
     return;
   }
@@ -341,7 +341,7 @@ export async function processDirectAdminReply(message, env) {
   if (command === "user") {
     await telegram(env, "sendMessage", {
       chat_id: env.ADMIN_USER_ID,
-      text: buildDirectUserStatus(user),
+      text: buildDirectUserStatus(user, env.BOT_LANGUAGE),
       parse_mode: "HTML"
     });
     return;
@@ -393,14 +393,14 @@ export async function processDirectAdminReply(message, env) {
   });
 }
 
-function buildDirectUserStatus(user) {
-  const username = user.username ? `@${escapeHtml(safeIdentityText(user.username))}` : "未設定";
+function buildDirectUserStatus(user, language) {
+  const username = user.username ? `@${escapeHtml(safeIdentityText(user.username))}` : t(language, "notSet");
   return [
-    "<b>使用者資料</b>",
+    `<b>${t(language, "userDetails")}</b>`,
     `User ID：<code>${escapeHtml(user.user_id)}</code>`,
-    `名稱：${escapeHtml(safeIdentityText([user.first_name, user.last_name].filter(Boolean).join(" ")) || "未提供")}`,
-    `使用者名稱：${username}`,
-    `狀態：${user.blocked ? "已封鎖" : "正常"}`
+    `${t(language, "name")}：${escapeHtml(safeIdentityText([user.first_name, user.last_name].filter(Boolean).join(" ")) || t(language, "notProvided"))}`,
+    `${t(language, "username")}：${username}`,
+    `${t(language, "status")}：${t(language, user.blocked ? "blockedStatus" : "normalStatus")}`
   ].join("\n");
 }
 
@@ -478,7 +478,7 @@ async function handleAdminCommand(command, message, user, env) {
     await telegram(env, "sendMessage", {
       chat_id: env.ADMIN_GROUP_ID,
       message_thread_id: message.message_thread_id,
-      text: blocked ? "已封鎖此使用者。" : "已解除封鎖。"
+      text: t(env.BOT_LANGUAGE, blocked ? "blocked" : "unblocked")
     });
     return true;
   }
@@ -493,7 +493,7 @@ async function handleAdminCommand(command, message, user, env) {
     await telegram(env, "sendMessage", {
       chat_id: env.ADMIN_GROUP_ID,
       message_thread_id: message.message_thread_id,
-      text: "指令：/user 查看資料、/block 封鎖、/unblock 解封、/close 關閉 Topic。一般訊息會直接回覆使用者。"
+      text: t(env.BOT_LANGUAGE, "adminHelp")
     });
     return true;
   }
@@ -562,7 +562,7 @@ async function ensureUserTopic(user, from, env) {
     try {
       const topic = await telegram(env, "createForumTopic", {
         chat_id: env.ADMIN_GROUP_ID,
-        name: buildTopicName(from)
+        name: buildTopicName(from, env.BOT_LANGUAGE)
       });
       await env.BOT_DB.prepare(`
         UPDATE users SET topic_id = ?, topic_card_message_id = NULL,
@@ -603,7 +603,7 @@ async function sendTopicUserCard(topicId, from, env) {
   return telegram(env, "sendMessage", {
     chat_id: env.ADMIN_GROUP_ID,
     message_thread_id: topicId,
-    text: buildUserCard(from),
+    text: buildUserCard(from, env.BOT_LANGUAGE),
     parse_mode: "HTML"
   });
 }
@@ -616,16 +616,17 @@ async function saveTopicCardMessage(db, userId, topicId, messageId) {
 }
 
 async function sendTopicStatus(message, user, env) {
-  const username = user.username ? `@${escapeHtml(safeIdentityText(user.username))}` : "未設定";
+  const language = env.BOT_LANGUAGE;
+  const username = user.username ? `@${escapeHtml(safeIdentityText(user.username))}` : t(language, "notSet");
   await telegram(env, "sendMessage", {
     chat_id: env.ADMIN_GROUP_ID,
     message_thread_id: message.message_thread_id,
     text: [
-      `<b>使用者資料</b>`,
+      `<b>${t(language, "userDetails")}</b>`,
       `User ID：<code>${escapeHtml(user.user_id)}</code>`,
-      `名稱：${escapeHtml(safeIdentityText([user.first_name, user.last_name].filter(Boolean).join(" ")) || "未提供")}`,
-      `使用者名稱：${username}`,
-      `狀態：${user.blocked ? "已封鎖" : "正常"}`
+      `${t(language, "name")}：${escapeHtml(safeIdentityText([user.first_name, user.last_name].filter(Boolean).join(" ")) || t(language, "notProvided"))}`,
+      `${t(language, "username")}：${username}`,
+      `${t(language, "status")}：${t(language, user.blocked ? "blockedStatus" : "normalStatus")}`
     ].join("\n"),
     parse_mode: "HTML"
   });
@@ -827,15 +828,16 @@ async function rollbackCopiedMessages(targetChatId, copied, env) {
 }
 
 async function sendDirectUserHeader(user, env) {
-  const name = safeIdentityText([user.first_name, user.last_name].filter(Boolean).join(" ")) || "未提供";
-  const username = user.username ? `@${escapeHtml(safeIdentityText(user.username))}` : "未設定";
+  const language = env.BOT_LANGUAGE;
+  const name = safeIdentityText([user.first_name, user.last_name].filter(Boolean).join(" ")) || t(language, "notProvided");
+  const username = user.username ? `@${escapeHtml(safeIdentityText(user.username))}` : t(language, "notSet");
   const header = await telegram(env, "sendMessage", {
     chat_id: env.ADMIN_USER_ID,
     text: [
-      "<b>收到私聊</b>",
+      `<b>${t(language, "receivedChat")}</b>`,
       `User ID：<code>${escapeHtml(user.user_id)}</code>`,
-      `名稱：${escapeHtml(name)}`,
-      `使用者名稱：${username}`
+      `${t(language, "name")}：${escapeHtml(name)}`,
+      `${t(language, "username")}：${username}`
     ].join("\n"),
     parse_mode: "HTML"
   });
@@ -857,14 +859,14 @@ async function sendUnknownCommand(chatId, topicId, env) {
   await telegram(env, "sendMessage", {
     chat_id: chatId,
     message_thread_id: topicId,
-    text: "未知指令。請使用 /help 查看可用指令。"
+    text: t(env.BOT_LANGUAGE, "unknownCommand")
   });
 }
 
 async function sendRateLimitNotice(chatId, env) {
   await telegram(env, "sendMessage", {
     chat_id: chatId,
-    text: "訊息傳送過快，請稍後再試。"
+    text: t(env.BOT_LANGUAGE, "rateLimit")
   });
 }
 
@@ -872,7 +874,7 @@ async function notifyUserCopyFailure(chatId, error, env) {
   if (isRetryableError(error) || isTopicMissing(error)) return;
   await telegram(env, "sendMessage", {
     chat_id: chatId,
-    text: "這類訊息目前無法轉送，請改用文字或一般媒體後再試。"
+    text: t(env.BOT_LANGUAGE, "unsupportedMessage")
   }).catch(() => {});
 }
 
@@ -881,7 +883,7 @@ async function notifyAdminDeliveryFailure(message, error, env) {
   await telegram(env, "sendMessage", {
     chat_id: message.chat.id,
     message_thread_id: message.message_thread_id,
-    text: "訊息無法送達；對方可能已封鎖 Bot，或該訊息類型不支援轉送。"
+    text: t(env.BOT_LANGUAGE, "deliveryFailed")
   }).catch(() => {});
 }
 
@@ -897,7 +899,7 @@ async function notifyMediaFailure(group, error, env) {
     message_thread_id: String(group.source_chat_id) === String(env.ADMIN_GROUP_ID)
       ? user?.topic_id
       : undefined,
-    text: "相簿無法完整送達；對方可能已封鎖 Bot，或其中包含不支援的內容。"
+    text: t(env.BOT_LANGUAGE, "albumFailed")
   }).catch(() => {});
 }
 
@@ -1168,6 +1170,7 @@ export function configurationIssue(env) {
   if (env.ADMIN_GROUP_ID != null && String(env.ADMIN_GROUP_ID) !== "") {
     if (!/^-100\d+$/.test(String(env.ADMIN_GROUP_ID).trim())) return "ADMIN_GROUP_ID";
   }
+  if (env.BOT_LANGUAGE != null && !["zh", "ja", "en"].includes(env.BOT_LANGUAGE)) return "BOT_LANGUAGE";
   return null;
 }
 
@@ -1186,20 +1189,20 @@ export function parseCommand(text) {
   return token.toLowerCase() || null;
 }
 
-export function buildTopicName(from) {
+export function buildTopicName(from, language) {
   const displayName = safeIdentityText([from.first_name, from.last_name].filter(Boolean).join(" "));
   const identity = from.username ? `@${safeIdentityText(from.username)}` : String(from.id);
-  return truncate(`${displayName || "使用者"} · ${identity}`, MAX_TOPIC_LENGTH);
+  return truncate(`${displayName || t(language, "user")} · ${identity}`, MAX_TOPIC_LENGTH);
 }
 
-export function buildUserCard(from) {
-  const fullName = safeIdentityText([from.first_name, from.last_name].filter(Boolean).join(" ")) || "未提供";
-  const username = from.username ? `@${escapeHtml(safeIdentityText(from.username))}` : "未設定";
+export function buildUserCard(from, language) {
+  const fullName = safeIdentityText([from.first_name, from.last_name].filter(Boolean).join(" ")) || t(language, "notProvided");
+  const username = from.username ? `@${escapeHtml(safeIdentityText(from.username))}` : t(language, "notSet");
   return [
-    "<b>新私聊</b>",
+    `<b>${t(language, "newChat")}</b>`,
     `User ID：<code>${escapeHtml(String(from.id))}</code>`,
-    `名稱：${escapeHtml(fullName)}`,
-    `使用者名稱：${username}`
+    `${t(language, "name")}：${escapeHtml(fullName)}`,
+    `${t(language, "username")}：${username}`
   ].join("\n");
 }
 
