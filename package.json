@@ -1,7 +1,8 @@
 {
   "name": "cloudflare-telegram-private-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
+  "license": "GPL-3.0-only",
   "type": "module",
   "scripts": {
     "check": "node --check src/index.js && node --test --test-isolation=none",

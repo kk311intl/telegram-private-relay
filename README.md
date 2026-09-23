@@ -1,8 +1,8 @@
 # Telegram Private Relay
 
-[繁體中文](#zh) · [日本語](#ja) · [English](#en) · [AI 提示詞 / AI プロンプト / AI prompts](#ai)
+[中文](#zh) · [日本語](#ja) · [English](#en) · [AI 提示詞 / AI プロンプト / AI prompts](#ai)
 
-Version: v1.0.0
+Version: v1.0.1 · License: [GPL-3.0-only](LICENSE)
 
 <a id="ai"></a>
 
@@ -10,7 +10,7 @@ Version: v1.0.0
 
 把 repository 和適合的提示詞交給 ChatGPT、Codex、Claude 或其他 coding agent。
 
-### 繁體中文
+### 中文
 
 > 請先閱讀這個 repository，再協助我安裝、設定、部署、排錯或修改。這是使用 Cloudflare Worker、D1 migrations 和 Telegram Webhook 的私聊轉送 Bot：每位使用者對應管理群組中的一個 Topic，也可改用管理者私聊模式。部署需要 Worker 名稱、D1 database ID、BOT_TOKEN、WEBHOOK_SECRET、ADMIN_USER_ID；ADMIN_GROUP_ID 可選。修改前先指出真正涉及的檔案，維持現有架構並只做必要改動。不要把真實 Token、ID、網域或本機路徑提交到 Git，請使用範例設定與本機憑證。只詢問缺少的必要值，完成後執行相關檢查並簡述結果。
 
@@ -24,7 +24,7 @@ Version: v1.0.0
 
 <a id="zh"></a>
 
-## 繁體中文
+## 中文
 
 這個 Bot 把 Telegram 私聊轉送到管理超級群組中每位使用者專屬的 Topic，管理者可直接回覆。未設定管理群組時，改用管理者私聊作為備用模式。以 Cloudflare Worker、D1 和 Telegram Webhook 運作；不儲存訊息文字或媒體內容。
 
@@ -91,6 +91,10 @@ Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/ready'
 ```
 
 `/ready` 檢查設定與 D1，不檢查 Telegram 權限。正式環境探針會送安全的測試更新並清除其 D1 紀錄；仍須用非管理者帳號實測「私聊 → Topic → 管理者回覆 → 使用者收到」。
+
+### 授權
+
+本專案採 [GPL-3.0-only](LICENSE)。Topic 分流概念參考 [Roddy-D/cloudflare-telegrambot](https://github.com/Roddy-D/cloudflare-telegrambot)。
 
 <a id="ja"></a>
 
@@ -162,6 +166,10 @@ Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/ready'
 
 `/ready` は設定と D1 を確認しますが、Telegram 側の権限は確認しません。運用テストは安全な更新を送信して D1 のテスト行を消去します。最後に管理者以外のアカウントで「私信 → トピック → 管理者の返信 → ユーザーへの到着」を確認してください。
 
+### ライセンス
+
+このプロジェクトは [GPL-3.0-only](LICENSE) で公開しています。トピックへの振り分けは [Roddy-D/cloudflare-telegrambot](https://github.com/Roddy-D/cloudflare-telegrambot) のアイデアを参考にしました。
+
 <a id="en"></a>
 
 ## English
@@ -231,3 +239,7 @@ Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/ready'
 ```
 
 `/ready` checks configuration and D1, not Telegram permissions. The runtime probe sends a safe update and removes its D1 row. Also test the full flow with a non-admin account: private message → topic → admin reply → user receives the reply.
+
+### License
+
+This project is licensed under [GPL-3.0-only](LICENSE). Topic routing was inspired by [Roddy-D/cloudflare-telegrambot](https://github.com/Roddy-D/cloudflare-telegrambot).
