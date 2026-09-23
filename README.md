@@ -2,25 +2,43 @@
 
 [中文](#zh) · [日本語](#ja) · [English](#en) · [AI 提示詞 / AI プロンプト / AI prompts](#ai)
 
-Version: v1.1.0 · License: [GPL-3.0-only](LICENSE)
+Version: v1.2.0 · License: [GPL-3.0-only](LICENSE)
 
 <a id="ai"></a>
 
 ## AI 提示詞 / AI プロンプト / AI prompts
 
-把 repository 和適合的提示詞交給 ChatGPT、Codex、Claude 或其他 coding agent。
+把 repository 連結和下方對應語言的提示詞交給能讀取檔案、執行終端指令的 AI coding agent。純聊天介面無法代替你操作本機或雲端帳號；帳號登入、BotFather 和必要的安全輸入仍由你完成。
 
 ### 中文
 
-> 請先閱讀這個 repository，再協助我安裝、設定、部署、排錯或修改。這是使用 Cloudflare Worker、D1 migrations 和 Telegram Webhook 的私聊轉送 Bot：每位使用者對應管理群組中的一個 Topic，也可改用管理者私聊模式。每個部署由 BOT_LANGUAGE 固定選擇中文、日文或英文，不按使用者語言切換。部署需要 Worker 名稱、D1 database ID、BOT_TOKEN、WEBHOOK_SECRET、ADMIN_USER_ID；ADMIN_GROUP_ID 可選。修改前先指出真正涉及的檔案，維持現有架構並只做必要改動。不要把真實 Token、ID、網域或本機路徑提交到 Git，請使用範例設定與本機憑證。只詢問缺少的必要值，完成後執行相關檢查並簡述結果。
+> 我沒有程式經驗。請把這個 repository 當成部署說明，直接帶我完成一個可用的 Telegram 私聊轉送 Bot；你負責讀取檔案、執行指令、修改本機設定及驗證，我只完成必須由帳號持有人操作的登入、BotFather、權限授予和安全輸入。不要只給我一串指令，也不要擅自改寫 Bot 程式。
+>
+> 先檢查我的作業系統、終端、Node.js、pnpm、PowerShell 7（若使用 Windows 腳本）、Cloudflare／Telegram 的準備狀態，以及此工程是否已有正在運行的部署。只問我缺少的必要選項：新建或沿用部署、Bot 固定語言 `zh`／`ja`／`en`、Topic 群組或管理者私聊模式；再讓我選擇是否自訂歡迎訊息、封鎖／節流／無法轉送提示、訊息間隔與清理排程，未指定就沿用安全預設。所有 Worker 名稱、D1、管理者 ID、群組 ID、Bot 和 Webhook 都要使用我的資料，不沿用原作者的環境。若沿用現有部署，先辨識 Worker、D1 與 Webhook，避免覆寫或重建。缺少工具時引導我安裝，然後接續工作。
+>
+> 依 README 與現有 `tools/` 腳本完成依賴安裝、測試、複製受 Git 忽略的 `wrangler.jsonc`、安全取得我的數字 `ADMIN_USER_ID`（Topic 模式也取得 `ADMIN_GROUP_ID`）、設定 Worker／D1／`vars.BOT_LANGUAGE`、建立或沿用 D1、套用 migrations、設定 Cloudflare Secrets／Variables、部署 Worker、註冊 Telegram Webhook。每一步請先說明我需做的唯一操作，完成後自行核對結果再進下一步；不要讓我手寫程式或自行猜設定值。Bot Token、Cloudflare Token、Webhook Secret 只能透過本機安全輸入或 Cloudflare Secret 欄位處理，不要請我貼進聊天、終端輸出、Git 或公開檔案；不要刪除或輪替既有憑證，除非我明確要求。
+>
+> 最後實際檢查 `/health`、`/ready`、Webhook 狀態和專案提供的安全 runtime probe，並引導我用非管理者 Telegram 帳號完成「私聊 → 管理端收到 → 回覆 → 使用者收到」測試。若環境或權限阻止某一步，說清楚阻礙與我需要做的下一個動作；不要宣稱未驗證的步驟已完成。成功後用白話列出 Bot 連結、Worker 網址、選定語言、部署模式、檢查結果與需要我保管的憑證位置，不顯示秘密值。
 
 ### 日本語
 
-> まずこの repository を読み、インストール、設定、デプロイ、問題調査、または依頼した変更を手伝ってください。これは Cloudflare Worker、D1 migrations、Telegram Webhook を使う私信転送 Bot です。ユーザーごとに管理グループのトピックを作り、管理者への私信モードも使えます。各デプロイは BOT_LANGUAGE で中国語、日本語、英語のいずれかに固定され、ユーザーごとには切り替わりません。デプロイには Worker 名、D1 database ID、BOT_TOKEN、WEBHOOK_SECRET、ADMIN_USER_ID が必要で、ADMIN_GROUP_ID は省略できます。変更前に対象ファイルを特定し、既存の構成を保って必要最小限だけ変更してください。実際の Token、ID、ドメイン、ローカルパスを Git に入れず、サンプル設定とローカルの認証情報を使ってください。不足している必須項目だけ確認し、関連するチェックを実行して結果を簡潔に報告してください。
+> 私にはプログラミングの経験がありません。この repository をデプロイ手順として読み、実際に使える Telegram 私信転送 Bot の公開まで案内してください。ファイルの確認、コマンド実行、ローカル設定、検証はあなたが担当し、アカウントへのログイン、BotFather、権限の承認、安全な入力など本人にしかできない操作は私に一つずつ案内してください。コマンドの一覧を渡すだけにせず、依頼していない Bot のコード変更もしないでください。
+>
+> まず OS、ターミナル、Node.js、pnpm、PowerShell 7（Windows のスクリプトを使う場合）、Cloudflare／Telegram の準備状況、既存の稼働中デプロイを確認してください。新規か既存か、Bot の固定言語 `zh`／`ja`／`en`、トピック付き管理グループか管理者への私信モードかなど、足りない必須項目だけ質問してください。歓迎文、ブロック／送信頻度／転送不可の案内、メッセージ間隔、クリーンアップ時刻をカスタマイズするかも確認し、指定がなければ安全な既定値を使ってください。Worker 名、D1、管理者とグループの ID、Bot、Webhook には私自身の設定を使い、元の作者の環境を流用しないでください。既存の Worker、D1、Webhook を確認せずに上書き・再作成しないでください。必要なツールがなければ導入方法を案内し、その後作業を続けてください。
+>
+> README と既存の `tools/` スクリプトに従い、依存関係のインストール、テスト、Git の対象外である `wrangler.jsonc` の作成、私の数字の `ADMIN_USER_ID`（トピックモードでは `ADMIN_GROUP_ID` も）の安全な確認、Worker／D1／`vars.BOT_LANGUAGE` の設定、D1 の新規作成または再利用、migrations の適用、Cloudflare Secrets／Variables の設定、Worker のデプロイ、Telegram Webhook の登録まで進めてください。各段階で私が行う必要のある操作を一つだけ説明し、結果を確認してから次に進んでください。私にコードを書かせたり設定値を推測させたりしないでください。Bot Token、Cloudflare Token、Webhook Secret はローカルの安全な入力または Cloudflare の Secret 欄だけで扱い、チャット、コマンド出力、Git、公開ファイルに貼るよう求めないでください。明示的な依頼なしに既存の認証情報を削除・更新しないでください。
+>
+> 最後に `/health`、`/ready`、Webhook の状態、プロジェクトの安全な runtime probe を実際に確認し、管理者以外の Telegram アカウントで「私信 → 管理側への到着 → 返信 → ユーザーへの到着」を私が試せるよう案内してください。環境や権限で止まったら理由と私が次に行う操作を明確にし、未確認の項目を完了と報告しないでください。成功時は Bot のリンク、Worker URL、選んだ言語、運用モード、検証結果、保管すべき認証情報の場所を平易にまとめ、秘密の値は表示しないでください。
 
 ### English
 
-> Read this repository before acting. It is a Telegram private-message relay built with a Cloudflare Worker, D1 migrations, and a Telegram webhook. Each user has a topic in an admin group, with an admin private-chat fallback. Each deployment uses one fixed Chinese, Japanese, or English language selected by BOT_LANGUAGE, not a per-user setting. Help me install, configure, deploy, troubleshoot, or make a requested change. Deployment needs a Worker name, a D1 database ID, BOT_TOKEN, WEBHOOK_SECRET, ADMIN_USER_ID, and optionally ADMIN_GROUP_ID. Identify the files involved first and keep the current architecture. Keep real credentials, IDs, domains, and local paths out of Git; use the example config and local secrets. Ask only for missing required values, run the relevant checks, and summarize the result.
+> I have no coding experience. Read this repository as the deployment guide and take me through publishing a working Telegram private-message relay Bot. You handle file inspection, commands, local configuration, and verification; guide me one action at a time through only the account-holder steps such as sign-in, BotFather, permission grants, and secure input. Do not merely give me a list of commands, and do not change the Bot's source code unless a real deployment blocker requires it and you explain why.
+>
+> First check my OS, terminal, Node.js, pnpm, PowerShell 7 if using the Windows scripts, Cloudflare and Telegram readiness, and whether this project already has a live deployment. Ask only for missing essentials: new versus existing deployment, one fixed Bot language (`zh`, `ja`, or `en`), and topic-based admin group versus admin private-chat mode. Offer me optional customization of the welcome, blocked-user, rate-limit, and unsupported-message notices, the message interval, and the cleanup schedule; keep safe defaults when I do not choose. Use my own Worker name, D1, admin and group IDs, Bot, and webhook—never the original author's environment. For an existing installation, identify its Worker, D1, and webhook before changing anything; do not overwrite or recreate them blindly. If a tool is missing, guide me through installing it and then continue.
+>
+> Follow the README and existing `tools/` scripts to install dependencies, run checks, create the Git-ignored `wrangler.jsonc`, safely obtain my numeric `ADMIN_USER_ID` (and `ADMIN_GROUP_ID` for topic mode), set the Worker, D1, and `vars.BOT_LANGUAGE`, create or reuse D1, apply migrations, set Cloudflare Secrets and Variables, deploy the Worker, and register the Telegram webhook. At each stage, tell me the one action I must perform, verify the result yourself, and continue. Do not ask me to write code or guess configuration values. Handle Bot, Cloudflare, and webhook tokens only through secure local prompts or Cloudflare Secret fields; never ask me to paste them into chat, terminal output, Git, or public files. Do not delete or rotate existing credentials without my explicit request.
+>
+> Finally, actually check `/health`, `/ready`, the webhook status, and the project's safe runtime probe. Guide me through a real test with a non-admin Telegram account: private message → admin receives it → admin replies → user receives the reply. If access or permissions block a step, state exactly what is blocked and the single next action I need to take; never report unverified work as complete. When finished, summarize the Bot link, Worker URL, chosen language, admin mode, verification results, and where I should retain credentials, without displaying secret values.
 
 <a id="zh"></a>
 
@@ -30,7 +48,7 @@ Version: v1.1.0 · License: [GPL-3.0-only](LICENSE)
 
 ### 準備
 
-- Node.js 22 以上、pnpm、PowerShell 7、Cloudflare 帳號和 Telegram Bot Token。
+- Node.js 22 以上、pnpm、Cloudflare 帳號和 Telegram Bot Token；Windows 腳本另需 PowerShell 7。
 - Topic 模式需要啟用話題的超級群組，Bot 須有傳送訊息及管理話題權限。
 - `tools/*.ps1` 使用 Windows DPAPI 儲存本機加密憑證；在其他系統上可直接使用 Wrangler 並自行安全管理 Token。
 
@@ -45,6 +63,8 @@ Copy-Item wrangler.jsonc.example wrangler.jsonc
 ```
 
 先在 `wrangler.jsonc` 設定自己的 Worker 名稱、D1 名稱及 `vars.BOT_LANGUAGE`（`zh`、`ja` 或 `en`，預設 `zh`）。每個部署實例固定一種語言，不依使用者的 Telegram 語言切換；不同語言的實例應使用各自的 Worker、D1、Telegram Bot Token、Webhook，以及 Topic 模式的管理群組。建立新資料庫後，把傳回的 `database_id` 填入該檔；不要把真正的 ID 提交到 Git。既有資料庫請直接填入原 ID，勿重新建立。
+
+新 Bot 尚未註冊 Webhook 時，先用自己的 Telegram 帳號私聊該 Bot 傳送 `/id`，再執行 `./tools/Get-TelegramUserId.ps1` 取得並確認自己的數字 `ADMIN_USER_ID`。腳本隱藏輸入 Bot Token、不保存它；若顯示多個候選 ID，請確認哪個帳號是自己。已有 Webhook 的部署則從現有設定取得 ID，不要用 `getUpdates`。
 
 ```powershell
 ./tools/Save-CloudflareToken.ps1
@@ -65,7 +85,12 @@ Cloudflare API Token 需要 Workers Scripts Edit 和 D1 Edit 權限。加密副�
 | `ADMIN_USER_ID` | Text | 管理者的數字 Telegram User ID |
 | `ADMIN_GROUP_ID` | Text，可選 | 啟用話題的超級群組 ID；省略則使用管理者私聊模式 |
 | `WELCOME_MESSAGE` | Text，可選 | 覆蓋該部署語言的 `/start` 歡迎訊息 |
+| `BLOCKED_MESSAGE` | Text，可選 | 覆蓋封鎖使用者收到的提示 |
+| `RATE_LIMIT_MESSAGE` | Text，可選 | 覆蓋傳送過快提示 |
+| `UNSUPPORTED_MESSAGE` | Text，可選 | 覆蓋訊息無法轉送提示 |
 | `MESSAGE_INTERVAL_SECONDS` | Text，可選 | 一般訊息間隔，預設 2 秒，範圍 0–60 |
+
+這些訊息未設定時使用 `BOT_LANGUAGE` 的預設翻譯；自訂文字最多 4096 字元，只影響該 Worker 部署。清理排程可在 `wrangler.jsonc` 的 `triggers.crons` 調整，其餘重試、保留期限等安全邊界屬程式行為，並非原作者的私人設定。
 
 ```powershell
 ./tools/New-WebhookSecret.ps1
@@ -104,7 +129,7 @@ Telegram の私信を、管理用スーパーグループ内のユーザー別�
 
 ### 必要なもの
 
-- Node.js 22 以降、pnpm、PowerShell 7、Cloudflare アカウント、Telegram Bot Token。
+- Node.js 22 以降、pnpm、Cloudflare アカウント、Telegram Bot Token。Windows のスクリプトには PowerShell 7 も必要です。
 - トピックを使う場合はトピックを有効にしたスーパーグループと、Bot の送信・トピック管理権限。
 - `tools/*.ps1` は Windows DPAPI でローカルの認証情報を暗号化します。他の OS では Wrangler を直接使い、Token を安全に管理してください。
 
@@ -119,6 +144,8 @@ Copy-Item wrangler.jsonc.example wrangler.jsonc
 ```
 
 `wrangler.jsonc` に自分の Worker 名、D1 名、`vars.BOT_LANGUAGE`（`zh`、`ja`、`en` のいずれか。既定は `zh`）を設定します。各デプロイは一つの言語を使用し、Telegram ユーザーの言語によって切り替えません。言語別のデプロイには、それぞれ別の Worker、D1、Telegram Bot Token、Webhook、トピックモードの管理グループを用意してください。新しいデータベースを作成したら、返された `database_id` を同ファイルに記入します。実際の ID は Git にコミットしないでください。既存の D1 を使う場合はその ID を記入し、再作成しません。
+
+新しい Bot で Webhook を登録する前に、自分の Telegram アカウントから Bot に `/id` を私信し、`./tools/Get-TelegramUserId.ps1` を実行して自分の数字の `ADMIN_USER_ID` を確認します。Bot Token の入力は非表示で、保存されません。候補が複数ある場合は自分のアカウントを確認してください。すでに Webhook がある場合は既存の設定から ID を取得し、`getUpdates` は使用しません。
 
 ```powershell
 ./tools/Save-CloudflareToken.ps1
@@ -139,7 +166,12 @@ Cloudflare Worker の Variables and Secrets に次を設定します。
 | `ADMIN_USER_ID` | Text | 管理者の数字の Telegram User ID |
 | `ADMIN_GROUP_ID` | Text、省略可 | トピックを有効にしたスーパーグループの ID。省略時は管理者への私信を使用 |
 | `WELCOME_MESSAGE` | Text、省略可 | デプロイ言語の `/start` 応答文を上書き |
+| `BLOCKED_MESSAGE` | Text、省略可 | ブロックされたユーザーへの案内を上書き |
+| `RATE_LIMIT_MESSAGE` | Text、省略可 | 送信頻度の案内を上書き |
+| `UNSUPPORTED_MESSAGE` | Text、省略可 | 転送できないメッセージの案内を上書き |
 | `MESSAGE_INTERVAL_SECONDS` | Text、省略可 | 通常メッセージの間隔。既定は 2 秒、範囲は 0–60 |
+
+メッセージを設定しなければ `BOT_LANGUAGE` の既定の翻訳を使用します。カスタマイズできる文は最大 4096 文字で、その Worker デプロイだけに適用されます。クリーンアップ時刻は `wrangler.jsonc` の `triggers.crons` で変更できます。再試行や保存期間などの安全上の制限はプログラムの動作であり、元の作者の個人設定ではありません。
 
 ```powershell
 ./tools/New-WebhookSecret.ps1
@@ -178,7 +210,7 @@ This bot relays Telegram private messages to a separate topic for each user in a
 
 ### Requirements
 
-- Node.js 22 or newer, pnpm, PowerShell 7, a Cloudflare account, and a Telegram Bot Token.
+- Node.js 22 or newer, pnpm, a Cloudflare account, and a Telegram Bot Token; the Windows scripts also need PowerShell 7.
 - Topic mode requires a supergroup with topics enabled and permission for the bot to send messages and manage topics.
 - `tools/*.ps1` store local encrypted credentials with Windows DPAPI. On other systems, use Wrangler directly and manage the token securely.
 
@@ -193,6 +225,8 @@ Copy-Item wrangler.jsonc.example wrangler.jsonc
 ```
 
 Set your Worker and D1 names and `vars.BOT_LANGUAGE` (`zh`, `ja`, or `en`; default `zh`) in `wrangler.jsonc`. Each deployment uses one fixed language, regardless of Telegram users' language settings. Use a separate Worker, D1, Telegram Bot Token, webhook, and topic-mode admin group for each language-specific deployment. For a new database, put the returned `database_id` in that file; never commit the real ID. For an existing database, enter its ID and skip creation.
+
+For a new Bot, before registering its webhook, send `/id` in a private chat with it from your own Telegram account. Run `./tools/Get-TelegramUserId.ps1` and confirm your numeric `ADMIN_USER_ID`. The script hides the Bot Token input and does not save it; if multiple IDs appear, identify your own account. For a deployment with an existing webhook, get the ID from its current configuration instead of using `getUpdates`.
 
 ```powershell
 ./tools/Save-CloudflareToken.ps1
@@ -213,7 +247,12 @@ Set these under the Worker's Variables and Secrets in Cloudflare:
 | `ADMIN_USER_ID` | Text | The admin's numeric Telegram User ID |
 | `ADMIN_GROUP_ID` | Text, optional | Supergroup ID with topics enabled; omit for admin private-chat mode |
 | `WELCOME_MESSAGE` | Text, optional | Overrides the `/start` reply for this deployment language |
+| `BLOCKED_MESSAGE` | Text, optional | Overrides the notice sent to blocked users |
+| `RATE_LIMIT_MESSAGE` | Text, optional | Overrides the rate-limit notice |
+| `UNSUPPORTED_MESSAGE` | Text, optional | Overrides the unsupported-message notice |
 | `MESSAGE_INTERVAL_SECONDS` | Text, optional | Minimum interval for ordinary messages; default 2 seconds, range 0–60 |
+
+Unset messages use the default translation for `BOT_LANGUAGE`; overrides are limited to 4096 characters and affect only that Worker deployment. The cleanup schedule can be changed in `wrangler.jsonc` under `triggers.crons`. Retry and retention limits are program behavior, not the original author's private settings.
 
 ```powershell
 ./tools/New-WebhookSecret.ps1

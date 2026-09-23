@@ -159,7 +159,7 @@ async function processUserMessage(message, env) {
       try {
         await telegram(env, "sendMessage", {
           chat_id: message.chat.id,
-          text: t(env.BOT_LANGUAGE, "blockedNotice")
+          text: env.BLOCKED_MESSAGE || t(env.BOT_LANGUAGE, "blockedNotice")
         });
       } catch (error) {
         await releaseBlockedNotice(env.BOT_DB, userId, now).catch(() => {});
@@ -212,7 +212,7 @@ async function processUserMessage(message, env) {
   if (!(await claimRateSlot(env.BOT_DB, userId, now, interval, rateKey))) {
     await telegram(env, "sendMessage", {
       chat_id: message.chat.id,
-      text: t(env.BOT_LANGUAGE, "rateLimit")
+      text: env.RATE_LIMIT_MESSAGE || t(env.BOT_LANGUAGE, "rateLimit")
     });
     return;
   }
@@ -866,7 +866,7 @@ async function sendUnknownCommand(chatId, topicId, env) {
 async function sendRateLimitNotice(chatId, env) {
   await telegram(env, "sendMessage", {
     chat_id: chatId,
-    text: t(env.BOT_LANGUAGE, "rateLimit")
+    text: env.RATE_LIMIT_MESSAGE || t(env.BOT_LANGUAGE, "rateLimit")
   });
 }
 
@@ -874,7 +874,7 @@ async function notifyUserCopyFailure(chatId, error, env) {
   if (isRetryableError(error) || isTopicMissing(error)) return;
   await telegram(env, "sendMessage", {
     chat_id: chatId,
-    text: t(env.BOT_LANGUAGE, "unsupportedMessage")
+    text: env.UNSUPPORTED_MESSAGE || t(env.BOT_LANGUAGE, "unsupportedMessage")
   }).catch(() => {});
 }
 
@@ -1171,6 +1171,9 @@ export function configurationIssue(env) {
     if (!/^-100\d+$/.test(String(env.ADMIN_GROUP_ID).trim())) return "ADMIN_GROUP_ID";
   }
   if (env.BOT_LANGUAGE != null && !["zh", "ja", "en"].includes(env.BOT_LANGUAGE)) return "BOT_LANGUAGE";
+  for (const name of ["WELCOME_MESSAGE", "BLOCKED_MESSAGE", "RATE_LIMIT_MESSAGE", "UNSUPPORTED_MESSAGE"]) {
+    if (env[name] != null && (typeof env[name] !== "string" || env[name].length > 4096)) return name;
+  }
   return null;
 }
 

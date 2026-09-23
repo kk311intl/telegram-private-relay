@@ -96,6 +96,41 @@ test("使用者歡迎訊息依部署語言，不依 Telegram 使用者語言", a
     }
     assert.match(sent[0], /こんにちは/);
     assert.match(sent[1], /Hello/);
+    await processUpdate({ message: userMessage(3, { text: "/start" }) }, {
+      BOT_TOKEN: "test-token", ADMIN_USER_ID: "1", BOT_LANGUAGE: "en",
+      WELCOME_MESSAGE: "Custom greeting", BOT_DB: db
+    });
+    assert.equal(sent[2], "Custom greeting");
+  } finally {
+    globalThis.fetch = originalFetch;
+    db.close();
+  }
+});
+
+test("封鎖與無法轉送提示可由部署設定覆蓋", async () => {
+  const originalFetch = globalThis.fetch;
+  const db = new TestD1();
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    const method = String(url).split("/").pop();
+    const payload = JSON.parse(init.body);
+    calls.push({ method, payload });
+    if (method === "createForumTopic") return telegramResponse({ message_thread_id: 77 });
+    if (method === "copyMessage") return telegramResponse(false, 400);
+    return telegramResponse({ message_id: calls.length + 100 });
+  };
+  const env = {
+    BOT_TOKEN: "test-token", ADMIN_USER_ID: "1", ADMIN_GROUP_ID: "-1001",
+    BLOCKED_MESSAGE: "Contact support", UNSUPPORTED_MESSAGE: "Use plain text",
+    BOT_DB: db
+  };
+  try {
+    await db.prepare("INSERT INTO users(user_id, blocked, created_at, updated_at) VALUES ('2', 1, 0, 0)").run();
+    await processUpdate({ message: userMessage(1, { text: "blocked" }) }, env);
+    assert.ok(calls.some((call) => call.payload.text === "Contact support"));
+    await db.prepare("UPDATE users SET blocked = 0 WHERE user_id = '2'").run();
+    await assert.rejects(processUpdate({ message: userMessage(2, { text: "unsupported" }) }, env));
+    assert.ok(calls.some((call) => call.payload.text === "Use plain text"));
   } finally {
     globalThis.fetch = originalFetch;
     db.close();
@@ -193,6 +228,7 @@ test("原子節流會拒絕同秒的第二則一般訊息", async () => {
     ADMIN_USER_ID: "1",
     ADMIN_GROUP_ID: "-1001",
     MESSAGE_INTERVAL_SECONDS: "2",
+    RATE_LIMIT_MESSAGE: "Please wait",
     BOT_DB: db
   };
   try {
@@ -201,7 +237,7 @@ test("原子節流會拒絕同秒的第二則一般訊息", async () => {
       processUpdate({ message: userMessage(31, { text: "第二則" }) }, env)
     ]);
     assert.equal(calls.filter((call) => call.method === "copyMessage").length, 1);
-    assert.equal(calls.filter((call) => call.payload.text === "訊息傳送過快，請稍後再試。").length, 1);
+    assert.equal(calls.filter((call) => call.payload.text === "Please wait").length, 1);
   } finally {
     globalThis.fetch = originalFetch;
     db.close();
