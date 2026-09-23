@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "telegram-private-relay",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "keep_vars": true,
+  "d1_databases": [
+    {
+      "binding": "BOT_DB",
+      "database_name": "telegram-private-relay",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": ["17 3 * * *"]
+  }
+}

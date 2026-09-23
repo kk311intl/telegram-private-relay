@@ -1,0 +1,13 @@
+node_modules/
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+.env*
+wrangler.jsonc
+private-credentials/
+private-backups/
+*.dpapi
+*.sqlite
+*.sqlite3
+*.db
+*.log
