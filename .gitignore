@@ -6,6 +6,7 @@ node_modules/
 wrangler.jsonc
 private-credentials/
 private-backups/
+personal/
 *.dpapi
 *.sqlite
 *.sqlite3
