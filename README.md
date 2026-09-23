@@ -82,7 +82,7 @@ Set-Clipboard $null
 
 ### 使用與檢查
 
-使用者私聊 Bot；管理者在對應 Topic 回覆。支援文字、一般媒體、相簿和編輯同步；Telegram 不允許複製的訊息類型無法轉送。使用者可用 `/start`、`/id`；管理者可用 `/user`、`/block`、`/unblock`、`/close`、`/help`。
+使用者私聊 Bot；Topic 模式由管理者在對應 Topic 回覆，私聊模式則須直接回覆 Bot 轉來的訊息。支援文字、一般媒體、相簿和編輯同步；Telegram 不允許複製的訊息類型無法轉送。使用者可用 `/start`、`/id`。Topic 模式的管理者可在 Topic 使用 `/user`、`/block`、`/unblock`、`/close`、`/help`；私聊模式須回覆對應訊息才能使用 `/user`、`/block`、`/unblock`，並可直接傳送 `/start` 或 `/help` 查看提示。`/close` 僅適用於 Topic。
 
 ```powershell
 Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/health'
@@ -91,7 +91,7 @@ Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/ready'
 ./tools/Test-WorkerRuntime.ps1 -WorkerUrl 'https://YOUR_WORKER.workers.dev'
 ```
 
-`/ready` 檢查設定與 D1，不檢查 Telegram 權限。正式環境探針會送安全的測試更新並清除其 D1 紀錄；仍須用非管理者帳號實測「私聊 → Topic → 管理者回覆 → 使用者收到」。
+`/ready` 檢查設定與 D1，不檢查 Telegram 權限。正式環境探針會送安全的測試更新並清除其 D1 紀錄，但不會驗證 Telegram 實際收發；仍須用非管理者帳號實測「私聊 → 管理端收到 → 管理者回覆 → 使用者收到」。若使用自訂設定檔，探針也須加上 `-Config '你的設定檔路徑'`，以清理正確的 D1。
 
 ### 授權
 
@@ -175,7 +175,7 @@ Set-Clipboard $null
 
 ### 使い方と確認
 
-ユーザーは Bot に私信を送り、管理者は該当トピックで返信します。テキスト、通常のメディア、アルバム、編集の同期に対応します。Telegram がコピーを許可しない種類のメッセージは転送できません。ユーザー用コマンドは `/start`、`/id`、管理者用は `/user`、`/block`、`/unblock`、`/close`、`/help` です。
+ユーザーは Bot に私信を送ります。トピックモードでは管理者が該当トピックで返信し、私信モードでは Bot から転送されたメッセージに返信します。テキスト、通常のメディア、アルバム、編集の同期に対応します。Telegram がコピーを許可しない種類のメッセージは転送できません。ユーザー用コマンドは `/start`、`/id` です。トピックモードでは管理者がトピック内で `/user`、`/block`、`/unblock`、`/close`、`/help` を使えます。私信モードでは対象メッセージへの返信で `/user`、`/block`、`/unblock` を使い、`/start` または `/help` は直接送信できます。`/close` はトピック専用です。
 
 ```powershell
 Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/health'
@@ -184,7 +184,7 @@ Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/ready'
 ./tools/Test-WorkerRuntime.ps1 -WorkerUrl 'https://YOUR_WORKER.workers.dev'
 ```
 
-`/ready` は設定と D1 を確認しますが、Telegram 側の権限は確認しません。運用テストは安全な更新を送信して D1 のテスト行を消去します。最後に管理者以外のアカウントで「私信 → トピック → 管理者の返信 → ユーザーへの到着」を確認してください。
+`/ready` は設定と D1 を確認しますが、Telegram 側の権限は確認しません。運用テストは安全な更新を送信して D1 のテスト行を消去しますが、Telegram での実際の送受信は検証しません。最後に管理者以外のアカウントで「私信 → 管理側への到着 → 管理者の返信 → ユーザーへの到着」を確認してください。独自の設定ファイルを使う場合は、テストにも `-Config '設定ファイルのパス'` を指定し、正しい D1 のテスト行を消去してください。
 
 ### ライセンス
 
@@ -268,7 +268,7 @@ If you do not know the group ID, register the webhook, have the admin send `/set
 
 ### Use and verify
 
-Users message the bot privately; the admin replies in the matching topic. Text, ordinary media, albums, and edit syncing are supported. Telegram message types that cannot be copied cannot be relayed. Users can run `/start` and `/id`; the admin can run `/user`, `/block`, `/unblock`, `/close`, and `/help`.
+Users message the bot privately. In topic mode, the admin replies in the matching topic; in private-chat mode, the admin must reply to the relayed message. Text, ordinary media, albums, and edit syncing are supported. Telegram message types that cannot be copied cannot be relayed. Users can run `/start` and `/id`. In topic mode, the admin can run `/user`, `/block`, `/unblock`, `/close`, and `/help` inside a topic. In private-chat mode, `/user`, `/block`, and `/unblock` must be replies to a relayed message; `/start` or `/help` can be sent directly. `/close` is topic-only.
 
 ```powershell
 Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/health'
@@ -277,7 +277,7 @@ Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/ready'
 ./tools/Test-WorkerRuntime.ps1 -WorkerUrl 'https://YOUR_WORKER.workers.dev'
 ```
 
-`/ready` checks configuration and D1, not Telegram permissions. The runtime probe sends a safe update and removes its D1 row. Also test the full flow with a non-admin account: private message → topic → admin reply → user receives the reply.
+`/ready` checks configuration and D1, not Telegram permissions. The runtime probe sends a safe update and removes its D1 row, but does not test actual Telegram delivery. Also test the full flow with a non-admin account: private message → admin receives it → admin replies → user receives the reply. If you use a custom config file, pass `-Config 'path/to/config'` to the probe so it cleans up the correct D1 database.
 
 ### License
 
