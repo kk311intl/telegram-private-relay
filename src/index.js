@@ -210,10 +210,7 @@ async function processUserMessage(message, env) {
     ? `album:${message.media_group_id}`
     : `message:${message.message_id}`;
   if (!(await claimRateSlot(env.BOT_DB, userId, now, interval, rateKey))) {
-    await telegram(env, "sendMessage", {
-      chat_id: message.chat.id,
-      text: env.RATE_LIMIT_MESSAGE || t(env.BOT_LANGUAGE, "rateLimit")
-    });
+    await sendRateLimitNotice(message.chat.id, env);
     return;
   }
 
@@ -232,7 +229,7 @@ async function processUserMessage(message, env) {
 
   let copied;
   try {
-    copied = await copyMessage(env, {
+    copied = await telegram(env, "copyMessage", {
       chat_id: env.ADMIN_GROUP_ID,
       from_chat_id: message.chat.id,
       message_id: message.message_id,
@@ -246,7 +243,7 @@ async function processUserMessage(message, env) {
     }
     await clearUserTopic(env.BOT_DB, user.user_id, user.topic_id);
     user = await ensureUserTopic({ ...user, topic_id: null }, message.from, env);
-    copied = await copyMessage(env, {
+    copied = await telegram(env, "copyMessage", {
       chat_id: env.ADMIN_GROUP_ID,
       from_chat_id: message.chat.id,
       message_id: message.message_id,
@@ -283,7 +280,7 @@ export async function relayUserMessageToAdmin(message, user, env, now) {
   const replyParameters = recentReply || await sendDirectUserHeader(user, env);
   let copied;
   try {
-    copied = await copyMessage(env, {
+    copied = await telegram(env, "copyMessage", {
       chat_id: env.ADMIN_USER_ID,
       from_chat_id: message.chat.id,
       message_id: message.message_id,
@@ -370,7 +367,7 @@ export async function processDirectAdminReply(message, env) {
 
   let copied;
   try {
-    copied = await copyMessage(env, {
+    copied = await telegram(env, "copyMessage", {
       chat_id: user.user_id,
       from_chat_id: env.ADMIN_USER_ID,
       message_id: message.message_id,
@@ -444,7 +441,7 @@ async function processAdminTopicMessage(message, env) {
   );
   let copied;
   try {
-    copied = await copyMessage(env, {
+    copied = await telegram(env, "copyMessage", {
       chat_id: user.user_id,
       from_chat_id: env.ADMIN_GROUP_ID,
       message_id: message.message_id,
@@ -616,18 +613,10 @@ async function saveTopicCardMessage(db, userId, topicId, messageId) {
 }
 
 async function sendTopicStatus(message, user, env) {
-  const language = env.BOT_LANGUAGE;
-  const username = user.username ? `@${escapeHtml(safeIdentityText(user.username))}` : t(language, "notSet");
   await telegram(env, "sendMessage", {
     chat_id: env.ADMIN_GROUP_ID,
     message_thread_id: message.message_thread_id,
-    text: [
-      `<b>${t(language, "userDetails")}</b>`,
-      `User ID：<code>${escapeHtml(user.user_id)}</code>`,
-      `${t(language, "name")}：${escapeHtml(safeIdentityText([user.first_name, user.last_name].filter(Boolean).join(" ")) || t(language, "notProvided"))}`,
-      `${t(language, "username")}：${username}`,
-      `${t(language, "status")}：${t(language, user.blocked ? "blockedStatus" : "normalStatus")}`
-    ].join("\n"),
+    text: buildDirectUserStatus(user, env.BOT_LANGUAGE),
     parse_mode: "HTML"
   });
 }
@@ -901,11 +890,6 @@ async function notifyMediaFailure(group, error, env) {
       : undefined,
     text: t(env.BOT_LANGUAGE, "albumFailed")
   }).catch(() => {});
-}
-
-async function copyMessage(env, payload) {
-  const cleanPayload = Object.fromEntries(Object.entries(payload).filter(([, value]) => value !== undefined));
-  return telegram(env, "copyMessage", cleanPayload);
 }
 
 class TelegramApiError extends Error {
