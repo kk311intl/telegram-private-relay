@@ -1,4 +1,4 @@
-# Telegram Private Relay
+# Telegram 私訊轉送 Bot
 
 [中文](#zh) · [日本語](#ja) · [English](#en)
 
@@ -7,6 +7,8 @@ Version: v1.2.1 · License: [GPL-3.0-only](LICENSE)
 <a id="zh"></a>
 
 ## 中文
+
+**免自管伺服器：** 部署在 Cloudflare Workers 與 D1，Webhook 收件和回覆由 Worker 處理；無需自架或維護常駐主機。仍需 Cloudflare 帳號、Telegram Bot Token，以及管理群組或管理者 ID。
 
 ### AI 部署提示詞
 
@@ -101,6 +103,8 @@ Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/ready'
 
 ## 日本語
 
+**自前サーバー不要：** Cloudflare Workers と D1 にデプロイし、Webhook の受信と返信を Worker が処理します。常時稼働するサーバーの構築・保守は不要です。Cloudflare アカウント、Telegram Bot Token、および管理グループまたは管理者 ID は必要です。
+
 ### AI デプロイ用プロンプト
 
 repository のリンクとこのプロンプトを、ファイルを読みターミナルを実行できる AI coding agent に渡してください。ログイン、BotFather、認証情報の安全な入力は本人が行います。
@@ -193,6 +197,8 @@ Invoke-RestMethod 'https://YOUR_WORKER.workers.dev/ready'
 <a id="en"></a>
 
 ## English
+
+**No server to maintain:** Deploy on Cloudflare Workers and D1. The Worker receives webhooks and handles replies, so no always-on server is needed. You still need a Cloudflare account, a Telegram Bot Token, and an admin group or admin ID.
 
 ### AI deployment prompt
 
